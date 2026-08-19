@@ -3,11 +3,8 @@ import {
   Banknote,
   BadgeDollarSign,
   Boxes,
-  CalendarClock,
   CircleDollarSign,
-  CloudCog,
   Globe2,
-  Network,
   ShieldCheck,
 } from '@lucide/vue'
 import AppShell from '../components/AppShell.vue'
@@ -22,12 +19,6 @@ const expenses = [
   { name: '日志平台扩容', team: 'SRE 团队', category: '云资源', progress: 57, cost: '98,600', tone: 'primary' },
 ]
 
-const renewals = [
-  { name: '*.internal.example.com', type: 'SSL 证书', due: '14 天', price: '¥2,800', tone: 'danger' },
-  { name: 'report.example.com', type: '域名', due: '28 天', price: '¥380', tone: 'warning' },
-  { name: '海外 CDN 套餐', type: '云资源', due: '36 天', price: '¥18,600', tone: 'warning' },
-  { name: '堡垒机服务', type: '安全服务', due: '62 天', price: '¥24,000', tone: 'success' },
-]
 </script>
 
 <template>
@@ -37,9 +28,9 @@ const renewals = [
         <div>
           <p class="page-eyebrow">Resource & Cost</p>
           <h1 class="page-title">资源管理</h1>
-          <p class="page-description">查看资产新增、续期提醒、预算消耗与项目费用，提前识别超支风险。</p>
+          <p class="page-description">查看资产投入、预算消耗与项目费用，提前识别超支风险。</p>
         </div>
-        <span class="status-pill warning">2 项即将到期</span>
+        <span class="status-pill success">资源数据已同步</span>
       </header>
 
       <DateRangeFilter />
@@ -54,7 +45,6 @@ const renewals = [
       <section class="panel expense-panel">
         <div class="section-heading">
           <div><h2 class="section-title">项目费用汇总</h2><p class="section-subtitle">Project Expense Summary · 按当前预算使用率排序</p></div>
-          <button class="secondary-button">导出明细</button>
         </div>
         <div class="table-wrap">
           <table class="data-table expense-table">
@@ -77,28 +67,7 @@ const renewals = [
         </div>
       </section>
 
-      <section class="split-grid resource-bottom">
-        <article class="panel">
-          <div class="section-heading">
-            <div><h2 class="section-title">续期提醒</h2><p class="section-subtitle">未来 90 天内到期项目</p></div>
-            <CalendarClock :size="19" class="warning-icon" />
-          </div>
-          <div class="renewal-list">
-            <article v-for="item in renewals" :key="item.name" class="renewal-row">
-              <span class="renewal-icon">
-                <ShieldCheck v-if="item.type === 'SSL 证书'" :size="17" />
-                <Globe2 v-else-if="item.type === '域名'" :size="17" />
-                <CloudCog v-else-if="item.type === '云资源'" :size="17" />
-                <Network v-else :size="17" />
-              </span>
-              <div><strong>{{ item.name }}</strong><small>{{ item.type }}</small></div>
-              <span class="status-pill" :class="item.tone">{{ item.due }}</span>
-              <b class="data-value">{{ item.price }}</b>
-            </article>
-          </div>
-        </article>
-
-        <article class="panel composition-panel">
+      <section class="panel composition-panel">
           <div class="section-heading">
             <div><h2 class="section-title">费用构成</h2><p class="section-subtitle">本周期总支出 ¥824,900</p></div>
             <Banknote :size="19" class="primary-icon" />
@@ -112,7 +81,6 @@ const renewals = [
               <div><span><i class="other" />其他</span><b class="data-value">8%</b></div>
             </div>
           </div>
-        </article>
       </section>
     </div>
   </AppShell>
@@ -166,60 +134,8 @@ const renewals = [
   text-align: right;
 }
 
-.warning-icon {
-  color: var(--warning);
-}
-
 .primary-icon {
   color: var(--primary);
-}
-
-.renewal-list {
-  display: grid;
-}
-
-.renewal-row {
-  display: grid;
-  min-height: 61px;
-  align-items: center;
-  gap: 11px;
-  border-top: 1px solid var(--border);
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-}
-
-.renewal-row:first-child {
-  border-top: 0;
-}
-
-.renewal-icon {
-  display: grid;
-  width: 31px;
-  height: 31px;
-  color: var(--primary);
-  background: var(--primary-soft);
-  border-radius: 7px;
-  place-items: center;
-}
-
-.renewal-row > div {
-  display: grid;
-  min-width: 0;
-}
-
-.renewal-row strong {
-  overflow: hidden;
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.renewal-row small {
-  color: var(--text-muted);
-  font-size: 9px;
-}
-
-.renewal-row > b {
-  font-size: 10px;
 }
 
 .composition-content {
@@ -300,13 +216,4 @@ const renewals = [
   }
 }
 
-@media (max-width: 520px) {
-  .renewal-row {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-  }
-
-  .renewal-row .status-pill {
-    display: none;
-  }
-}
 </style>
