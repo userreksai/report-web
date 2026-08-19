@@ -40,7 +40,10 @@ function submit() {
     <section class="login-brand">
       <div class="brand-badge"><ChartNoAxesCombined :size="25" /></div>
       <p>OPS REPORTING CENTER</p>
-      <h1>把复杂的运维数据，<br /><span>收敛到一个视图。</span></h1>
+      <h1>
+        <span class="headline-line">把复杂的运维数据，</span>
+        <span class="headline-line headline-accent">收敛到一个视图。</span>
+      </h1>
       <p class="brand-description">
         统一查看项目、数据库、安全审批、资源投入与月报，快速识别需要关注的变化。
       </p>
@@ -172,12 +175,17 @@ function submit() {
 .login-brand h1 {
   max-width: 720px;
   margin: 0;
-  font-size: clamp(38px, 5vw, 66px);
+  font-size: clamp(36px, 4vw, 56px);
   line-height: 1.12;
   letter-spacing: -0.045em;
 }
 
-.login-brand h1 span {
+.headline-line {
+  display: block;
+  white-space: nowrap;
+}
+
+.headline-accent {
   color: var(--primary);
 }
 
