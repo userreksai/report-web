@@ -4,12 +4,9 @@ import {
   ArrowRight,
   CalendarDays,
   CheckCircle2,
-  Download,
   FileChartColumn,
   FileText,
-  Gauge,
   Layers3,
-  TrendingDown,
   X,
 } from '@lucide/vue'
 import AppShell from '../components/AppShell.vue'
@@ -20,11 +17,11 @@ const selectedYear = ref('2026')
 const selectedReport = ref(null)
 
 const reports = [
-  { month: '2026年7月', date: '2026-08-01', status: '已发布', items: 486, incidents: 8, availability: '99.96%', summary: '核心系统稳定运行，完成海外 CDN 扩容和年度证书集中续期。' },
-  { month: '2026年6月', date: '2026-07-02', status: '已发布', items: 452, incidents: 11, availability: '99.92%', summary: '完成数据库主从架构优化，慢 SQL 数量较上月下降 13%。' },
-  { month: '2026年5月', date: '2026-06-01', status: '已发布', items: 431, incidents: 9, availability: '99.94%', summary: '重点推进权限治理和资源成本核查，关闭 18 项历史风险。' },
-  { month: '2026年4月', date: '2026-05-06', status: '已发布', items: 398, incidents: 14, availability: '99.88%', summary: '完成核心服务春季容量评估，新增 6 项自动化巡检。' },
-  { month: '2025年12月', date: '2026-01-05', status: '已归档', items: 520, incidents: 10, availability: '99.95%', summary: '完成年度收口及跨年保障，所有高风险变更均通过复盘。' },
+  { month: '2026年7月', date: '2026-08-01', status: '已发布', items: 486, summary: '核心系统稳定运行，完成海外 CDN 扩容和年度证书集中续期。' },
+  { month: '2026年6月', date: '2026-07-02', status: '已发布', items: 452, summary: '完成数据库主从架构优化，慢 SQL 数量较上月下降 13%。' },
+  { month: '2026年5月', date: '2026-06-01', status: '已发布', items: 431, summary: '重点推进权限治理和资源成本核查，关闭 18 项历史风险。' },
+  { month: '2026年4月', date: '2026-05-06', status: '已发布', items: 398, summary: '完成核心服务春季容量评估，新增 6 项自动化巡检。' },
+  { month: '2025年12月', date: '2026-01-05', status: '已归档', items: 520, summary: '完成年度收口及跨年保障，所有高风险变更均通过复盘。' },
 ]
 
 const filteredReports = computed(() => reports.filter((report) => report.month.startsWith(selectedYear.value)))
@@ -37,18 +34,15 @@ const filteredReports = computed(() => reports.filter((report) => report.month.s
         <div>
           <p class="page-eyebrow">Monthly Reports</p>
           <h1 class="page-title">运维月报</h1>
-          <p class="page-description">沉淀每月运维工作、稳定性、故障与资源变化，形成可追溯的运营记录。</p>
+          <p class="page-description">沉淀每月运维工作与资源变化，形成可追溯的运营记录。</p>
         </div>
-        <button class="primary-button create-button"><FileChartColumn :size="16" />生成本月月报</button>
       </header>
 
       <DateRangeFilter />
 
-      <section class="metrics-grid">
+      <section class="metrics-grid monthly-metrics">
         <StatCard label="本年月报" value="7" helper="最新发布于 08-01" trend="全部按时" trend-type="flat" :icon="FileText" />
         <StatCard label="累计工作项" value="3,142" helper="月均 449 项" trend="8.6%" :icon="Layers3" />
-        <StatCard label="平均可用性" value="99.94%" helper="高于年度目标" trend="0.03%" tone="success" :icon="Gauge" />
-        <StatCard label="故障数量" value="68" helper="较去年同期减少 17%" trend="17%" trend-type="down" tone="success" :icon="TrendingDown" />
       </section>
 
       <section class="reports-layout">
@@ -74,8 +68,6 @@ const filteredReports = computed(() => reports.filter((report) => report.month.s
               </div>
               <div class="report-stats">
                 <span><small>工作项</small><b class="data-value">{{ report.items }}</b></span>
-                <span><small>故障</small><b class="data-value">{{ report.incidents }}</b></span>
-                <span><small>可用性</small><b class="data-value">{{ report.availability }}</b></span>
               </div>
               <span class="status-pill success">{{ report.status }}</span>
               <button class="view-button" @click="selectedReport = report">
@@ -102,11 +94,6 @@ const filteredReports = computed(() => reports.filter((report) => report.month.s
             </div>
           </article>
 
-          <article class="panel archive-card">
-            <span><Download :size="19" /></span>
-            <div><strong>归档与导出</strong><p>支持 PDF 与数据附件打包下载</p></div>
-            <button class="secondary-button">批量导出</button>
-          </article>
         </aside>
       </section>
     </div>
@@ -120,12 +107,9 @@ const filteredReports = computed(() => reports.filter((report) => report.month.s
         <p class="modal-summary">{{ selectedReport.summary }}</p>
         <div class="modal-metrics">
           <div><small>工作项</small><strong class="data-value">{{ selectedReport.items }}</strong></div>
-          <div><small>故障</small><strong class="data-value">{{ selectedReport.incidents }}</strong></div>
-          <div><small>可用性</small><strong class="data-value">{{ selectedReport.availability }}</strong></div>
         </div>
         <div class="modal-actions">
           <button class="secondary-button" @click="selectedReport = null">关闭</button>
-          <button class="primary-button"><Download :size="15" />下载月报</button>
         </div>
       </article>
     </div>
@@ -133,8 +117,8 @@ const filteredReports = computed(() => reports.filter((report) => report.month.s
 </template>
 
 <style scoped>
-.create-button {
-  gap: 8px;
+.monthly-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .reports-layout {
@@ -309,37 +293,6 @@ const filteredReports = computed(() => reports.filter((report) => report.month.s
   border-radius: 50%;
 }
 
-.archive-card {
-  display: grid;
-  align-items: center;
-  gap: 12px;
-  grid-template-columns: auto 1fr;
-}
-
-.archive-card > span {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  color: var(--primary);
-  background: var(--primary-soft);
-  border-radius: 8px;
-  place-items: center;
-}
-
-.archive-card strong {
-  font-size: 12px;
-}
-
-.archive-card p {
-  margin: 2px 0 0;
-  color: var(--text-muted);
-  font-size: 9px;
-}
-
-.archive-card button {
-  grid-column: 1 / -1;
-}
-
 .modal-backdrop {
   position: fixed;
   z-index: 60;
@@ -404,7 +357,7 @@ const filteredReports = computed(() => reports.filter((report) => report.month.s
 
 .modal-metrics {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: 1px;
   overflow: hidden;
   background: var(--border);
@@ -444,12 +397,13 @@ const filteredReports = computed(() => reports.filter((report) => report.month.s
     grid-template-columns: 1fr;
   }
 
-  .report-side {
-    grid-template-columns: 1fr 1fr;
-  }
 }
 
 @media (max-width: 800px) {
+  .monthly-metrics {
+    grid-template-columns: 1fr;
+  }
+
   .report-row {
     grid-template-columns: auto minmax(0, 1fr) auto;
   }
@@ -465,11 +419,6 @@ const filteredReports = computed(() => reports.filter((report) => report.month.s
 }
 
 @media (max-width: 520px) {
-  .create-button {
-    width: 100%;
-    margin-top: 14px;
-  }
-
   .report-list-panel .section-heading {
     align-items: flex-start;
   }

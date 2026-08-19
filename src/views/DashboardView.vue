@@ -1,13 +1,9 @@
 <script setup>
 import {
-  Activity,
-  AlertTriangle,
   ArrowRight,
-  BadgeCheck,
-  CircleDotDashed,
+  CircleDollarSign,
   Database,
-  FileCheck2,
-  Gauge,
+  FileClock,
   PackageCheck,
   ShieldCheck,
   TicketCheck,
@@ -15,19 +11,6 @@ import {
 import AppShell from '../components/AppShell.vue'
 import DateRangeFilter from '../components/DateRangeFilter.vue'
 import StatCard from '../components/StatCard.vue'
-
-const notices = [
-  { title: '生产集群容量预警', meta: '数据库 · 10 分钟前', tone: 'warning' },
-  { title: 'SSL 证书将在 14 天后到期', meta: '资源 · 1 小时前', tone: 'danger' },
-  { title: '季度权限复核已完成', meta: '安全 · 3 小时前', tone: 'success' },
-]
-
-const activities = [
-  { title: '完成支付服务灰度发布', owner: '陈晓 · 项目管理', time: '14:36' },
-  { title: '审批生产库查询工单', owner: '王宁 · DBA', time: '13:20' },
-  { title: '更新海外 CDN 资源', owner: '李敏 · 资源管理', time: '11:48' },
-  { title: '关闭高危漏洞整改项', owner: '赵强 · 安全中心', time: '09:15' },
-]
 </script>
 
 <template>
@@ -37,7 +20,7 @@ const activities = [
         <div>
           <p class="page-eyebrow">Operations Overview</p>
           <h1 class="page-title">运维工作数据总览</h1>
-          <p class="page-description">汇总当前运维工作量、风险与资源状态，帮助团队快速定位异常。</p>
+          <p class="page-description">汇总项目工作、数据库工单、安全审批与支出费用。</p>
         </div>
         <span class="status-pill success">数据已于 16:42 更新</span>
       </header>
@@ -46,9 +29,9 @@ const activities = [
 
       <section class="metrics-grid">
         <StatCard label="项目工作项" value="142" helper="本周期已完成 98 项" trend="12.6%" trend-type="up" :icon="TicketCheck" />
-        <StatCard label="活动告警" value="12" helper="其中 3 项需要处理" trend="2 项" trend-type="down" tone="warning" :icon="AlertTriangle" />
-        <StatCard label="数据库工单" value="24" helper="总计 86 项" trend="8.2%" trend-type="up" tone="success" :icon="Database" />
-        <StatCard label="慢 SQL 统计" value="842" helper="生产环境占 60.1%" trend="持平" trend-type="flat" tone="danger" :icon="Gauge" />
+        <StatCard label="Archery 工单" value="24" helper="共 86 项工单" trend="6 项" trend-type="up" :icon="FileClock" />
+        <StatCard label="Lark 安全审批" value="12" helper="已完成审批数量" trend="全部完成" trend-type="flat" tone="success" :icon="ShieldCheck" />
+        <StatCard label="支出费用" value="¥45,200" helper="本周期费用总额" trend="6.8%" trend-type="down" :icon="CircleDollarSign" />
       </section>
 
       <section class="dashboard-grid domain-grid">
@@ -68,66 +51,34 @@ const activities = [
         <article class="domain-card db-card">
           <div class="domain-heading">
             <span><Database :size="21" /></span>
-            <div><p>数据库管理</p><strong>运行质量</strong></div>
-            <b class="data-value">98.7%</b>
+            <div><p>数据库管理</p><strong>数据总量</strong></div>
+            <b class="data-value">2 类</b>
           </div>
-          <div class="domain-detail"><span>Archery 工单</span><strong class="data-value">24</strong></div>
-          <div class="progress-track"><div class="progress-bar" style="width: 84%" /></div>
-          <RouterLink to="/database">查看数据库 <ArrowRight :size="15" /></RouterLink>
+          <div class="domain-totals">
+            <div><span>Archery 工单</span><strong class="data-value">24</strong></div>
+            <div><span>慢 SQL</span><strong class="data-value">1,402</strong></div>
+          </div>
+          <RouterLink to="/database">查看数据库汇总 <ArrowRight :size="15" /></RouterLink>
         </article>
 
         <article class="domain-card security-card">
           <div class="domain-heading">
             <span><ShieldCheck :size="21" /></span>
-            <div><p>安全中心</p><strong>审批与合规</strong></div>
+            <div><p>安全审批</p><strong>Lark 已完成审批</strong></div>
             <b class="data-value">12</b>
           </div>
-          <div class="domain-detail"><span>Lark 审批完成</span><strong class="data-value">91%</strong></div>
-          <div class="progress-track"><div class="progress-bar" style="width: 91%" /></div>
+          <div class="single-summary"><span class="status-pill success">全部完成</span></div>
           <RouterLink to="/security">查看安全审批 <ArrowRight :size="15" /></RouterLink>
         </article>
 
         <article class="domain-card resource-card">
           <div class="domain-heading">
             <span><PackageCheck :size="21" /></span>
-            <div><p>资源管理</p><strong>续费与资产</strong></div>
+            <div><p>资源管理</p><strong>费用与资产</strong></div>
             <b class="data-value">¥45.2K</b>
           </div>
-          <div class="domain-detail"><span>待续期证书</span><strong class="data-value">14</strong></div>
-          <div class="progress-track"><div class="progress-bar" style="width: 73%" /></div>
+          <div class="domain-detail"><span>本周期支出费用</span><strong class="data-value">¥45,200</strong></div>
           <RouterLink to="/resources">查看资源明细 <ArrowRight :size="15" /></RouterLink>
-        </article>
-      </section>
-
-      <section class="split-grid">
-        <article class="panel">
-          <div class="section-heading">
-            <div><h2 class="section-title">近期运维动态</h2><p class="section-subtitle">跨模块最新操作记录</p></div>
-            <Activity :size="19" class="heading-icon" />
-          </div>
-          <div class="activity-list">
-            <div v-for="item in activities" :key="item.title" class="activity-item">
-              <span class="activity-dot"><CircleDotDashed :size="15" /></span>
-              <div><strong>{{ item.title }}</strong><small>{{ item.owner }}</small></div>
-              <time class="data-value">{{ item.time }}</time>
-            </div>
-          </div>
-        </article>
-
-        <article class="panel">
-          <div class="section-heading">
-            <div><h2 class="section-title">需要关注</h2><p class="section-subtitle">按风险优先级排列</p></div>
-            <AlertTriangle :size="19" class="heading-icon warning" />
-          </div>
-          <div class="notice-list">
-            <div v-for="notice in notices" :key="notice.title" class="notice-item">
-              <span :class="notice.tone">
-                <BadgeCheck v-if="notice.tone === 'success'" :size="17" />
-                <AlertTriangle v-else :size="17" />
-              </span>
-              <div><strong>{{ notice.title }}</strong><small>{{ notice.meta }}</small></div>
-            </div>
-          </div>
         </article>
       </section>
     </div>
@@ -179,15 +130,48 @@ const activities = [
 
 .domain-detail {
   display: flex;
+  min-height: 37px;
   align-items: center;
   justify-content: space-between;
-  margin: 18px 0 8px;
+  margin: 14px 0 6px;
   color: var(--text-muted);
   font-size: 10px;
 }
 
 .domain-detail strong {
   color: var(--text-soft);
+}
+
+.domain-totals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0 0;
+}
+
+.domain-totals > div {
+  display: grid;
+  gap: 3px;
+  padding: 9px 10px;
+  background: rgba(5, 15, 25, 0.42);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.domain-totals span {
+  color: var(--text-muted);
+  font-size: 9px;
+}
+
+.domain-totals strong {
+  font-size: 15px;
+}
+
+.single-summary {
+  display: flex;
+  min-height: 59px;
+  align-items: center;
+  margin-top: 8px;
 }
 
 .domain-card a {
@@ -201,95 +185,6 @@ const activities = [
 
 .domain-card a:hover {
   color: var(--primary);
-}
-
-.heading-icon {
-  color: var(--primary);
-}
-
-.heading-icon.warning {
-  color: var(--warning);
-}
-
-.activity-list,
-.notice-list {
-  display: grid;
-}
-
-.activity-item,
-.notice-item {
-  display: flex;
-  min-height: 54px;
-  align-items: center;
-  gap: 11px;
-  border-top: 1px solid var(--border);
-}
-
-.activity-item:first-child,
-.notice-item:first-child {
-  border-top: 0;
-}
-
-.activity-dot {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  flex: 0 0 auto;
-  color: var(--primary);
-  background: var(--primary-soft);
-  border-radius: 7px;
-  place-items: center;
-}
-
-.activity-item > div,
-.notice-item > div {
-  display: grid;
-  min-width: 0;
-  flex: 1;
-}
-
-.activity-item strong,
-.notice-item strong {
-  overflow: hidden;
-  font-size: 12px;
-  font-weight: 580;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.activity-item small,
-.notice-item small {
-  color: var(--text-muted);
-  font-size: 10px;
-}
-
-.activity-item time {
-  color: var(--text-muted);
-  font-size: 10px;
-}
-
-.notice-item > span {
-  display: grid;
-  width: 31px;
-  height: 31px;
-  flex: 0 0 auto;
-  border-radius: 7px;
-  place-items: center;
-}
-
-.notice-item > span.warning {
-  color: var(--warning);
-  background: rgba(243, 182, 74, 0.09);
-}
-
-.notice-item > span.danger {
-  color: var(--danger);
-  background: rgba(255, 107, 118, 0.09);
-}
-
-.notice-item > span.success {
-  color: var(--success);
-  background: rgba(49, 209, 139, 0.09);
 }
 
 @media (max-width: 600px) {

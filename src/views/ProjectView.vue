@@ -22,10 +22,10 @@ const incidents = [
 ]
 
 const tasks = [
-  { title: '迁移旧版认证服务', owner: '王宁', progress: 78, due: '08-22', tone: 'success' },
-  { title: '更新 Q3 安全证书', owner: '李敏', progress: 52, due: '08-26', tone: 'warning' },
-  { title: 'IAM 角色与权限审计', owner: '赵强', progress: 34, due: '08-30', tone: 'warning' },
-  { title: '核心链路压测与基线更新', owner: '陈晓', progress: 88, due: '08-20', tone: 'success' },
+  { title: '迁移旧版认证服务', owner: '王宁', count: 10, due: '08-22', tone: 'success' },
+  { title: '更新 Q3 安全证书', owner: '李敏', count: 4, due: '08-26', tone: 'warning' },
+  { title: 'IAM 角色与权限审计', owner: '赵强', count: 87, due: '08-30', tone: 'warning' },
+  { title: '核心链路压测与基线更新', owner: '陈晓', count: 6, due: '08-20', tone: 'success' },
 ]
 </script>
 
@@ -78,7 +78,7 @@ const tasks = [
           <div class="section-heading">
             <div>
               <h2 class="section-title">季度任务 / 杂项任务</h2>
-              <p class="section-subtitle">4 项任务正在推进</p>
+              <p class="section-subtitle">4 类任务 · 共 107 项</p>
             </div>
             <GitPullRequestArrow :size="19" class="section-icon" />
           </div>
@@ -87,9 +87,8 @@ const tasks = [
               <div class="task-title">
                 <span :class="task.tone"><CheckCircle2 :size="15" /></span>
                 <div><strong>{{ task.title }}</strong><small>{{ task.owner }} · 截止 {{ task.due }}</small></div>
-                <b class="data-value">{{ task.progress }}%</b>
+                <b class="task-count data-value">{{ task.count }} 项</b>
               </div>
-              <div class="progress-track"><div class="progress-bar" :style="{ width: `${task.progress}%` }" /></div>
             </article>
           </div>
         </article>
@@ -103,7 +102,7 @@ const tasks = [
           <div><span>生产环境</span><strong class="data-value">18</strong><small>17 成功 · 1 回滚</small></div>
           <div><span>预发布环境</span><strong class="data-value">41</strong><small>成功率 100%</small></div>
           <div><span>测试环境</span><strong class="data-value">96</strong><small>8 项验证中</small></div>
-          <div><span>平均交付时长</span><strong class="data-value">12m</strong><small>环比缩短 3 分钟</small></div>
+          <div><span>交付总数量</span><strong class="data-value">155</strong><small>覆盖 3 个环境</small></div>
         </div>
       </section>
     </div>
@@ -206,8 +205,12 @@ const tasks = [
   display: grid;
   align-items: center;
   gap: 9px;
-  margin-bottom: 9px;
   grid-template-columns: auto 1fr auto;
+}
+
+.task-count {
+  color: var(--primary);
+  font-size: 12px;
 }
 
 .task-title > span {
