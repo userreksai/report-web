@@ -26,8 +26,7 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   document.title = `${to.meta.title ?? '运维报告中心'} · 运维报告中心`
-  if (to.meta.public) return true
-  return sessionStorage.getItem('report-auth') ? true : { name: 'login' }
+  return true
 })
 
 export default router

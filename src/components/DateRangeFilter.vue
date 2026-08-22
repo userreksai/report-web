@@ -1,74 +1,74 @@
 <script setup>
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { CalendarDays, Check, ChevronDown, RotateCcw, Search } from '@lucide/vue'
+import { applyDateRange, applyPreset, dateRange, refreshDateRange } from '../state/dateRange'
 
 const emit = defineEmits(['search'])
 
-const today = new Date()
 const presets = [
-  { label: '近 7 天', days: 7 },
-  { label: '近 30 天', days: 30 },
-  { label: '近 90 天', days: 90 },
-  { label: '本月', month: true },
+  { label: '近 7 天' },
+  { label: '近 30 天' },
+  { label: '近 90 天' },
+  { label: '本月' },
 ]
 
 const open = ref(false)
-const appliedStart = ref(shiftDate(today, -29))
-const appliedEnd = ref(formatDate(today))
-const draftStart = ref(appliedStart.value)
-const draftEnd = ref(appliedEnd.value)
-const activePreset = ref('近 30 天')
+const draftStart = ref(dateRange.start)
+const draftEnd = ref(dateRange.end)
 const feedback = ref(false)
 let feedbackTimer
 
-const displayRange = computed(() => `${toDisplay(appliedStart.value)} — ${toDisplay(appliedEnd.value)}`)
-
-function formatDate(date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-function shiftDate(date, days) {
-  const next = new Date(date)
-  next.setDate(next.getDate() + days)
-  return formatDate(next)
-}
+const displayRange = computed(() => `${toDisplay(dateRange.start)} — ${toDisplay(dateRange.end)}`)
 
 function toDisplay(value) {
   return value?.replaceAll('-', '.') || '未选择'
 }
 
 function usePreset(preset) {
-  activePreset.value = preset.label
-  draftEnd.value = formatDate(today)
-  if (preset.month) {
-    draftStart.value = formatDate(new Date(today.getFullYear(), today.getMonth(), 1))
-  } else {
-    draftStart.value = shiftDate(today, -(preset.days - 1))
-  }
+  applyPreset(preset.label)
+  draftStart.value = dateRange.start
+  draftEnd.value = dateRange.end
+  showFeedback()
+  emit('search', { start: dateRange.start, end: dateRange.end })
 }
 
 function reset() {
-  activePreset.value = '近 30 天'
-  draftStart.value = shiftDate(today, -29)
-  draftEnd.value = formatDate(today)
+  applyPreset('近 30 天')
+  draftStart.value = dateRange.start
+  draftEnd.value = dateRange.end
+  open.value = false
+  showFeedback()
 }
 
 function applyRange() {
   if (!draftStart.value || !draftEnd.value) return
-  if (draftStart.value > draftEnd.value) {
-    ;[draftStart.value, draftEnd.value] = [draftEnd.value, draftStart.value]
-  }
-  appliedStart.value = draftStart.value
-  appliedEnd.value = draftEnd.value
+  applyDateRange(draftStart.value, draftEnd.value)
+  draftStart.value = dateRange.start
+  draftEnd.value = dateRange.end
   open.value = false
+  showFeedback()
+  emit('search', { start: dateRange.start, end: dateRange.end })
+}
+
+function queryAgain() {
+  refreshDateRange()
+  showFeedback()
+  emit('search', { start: dateRange.start, end: dateRange.end })
+}
+
+function showFeedback() {
   feedback.value = true
   clearTimeout(feedbackTimer)
   feedbackTimer = setTimeout(() => (feedback.value = false), 1800)
-  emit('search', { start: appliedStart.value, end: appliedEnd.value })
 }
+
+watch(
+  () => [dateRange.start, dateRange.end],
+  ([start, end]) => {
+    draftStart.value = start
+    draftEnd.value = end
+  },
+)
 
 onBeforeUnmount(() => clearTimeout(feedbackTimer))
 </script>
@@ -87,7 +87,7 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
       <button
         v-for="preset in presets"
         :key="preset.label"
-        :class="{ active: activePreset === preset.label }"
+        :class="{ active: dateRange.preset === preset.label }"
         @click="usePreset(preset)"
       >
         {{ preset.label }}
@@ -135,7 +135,7 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
       </div>
     </div>
 
-    <button class="search-button" @click="applyRange">
+    <button class="search-button" @click="queryAgain">
       <Check v-if="feedback" :size="16" />
       <Search v-else :size="16" />
       {{ feedback ? '已更新' : '查询' }}

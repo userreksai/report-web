@@ -2,7 +2,6 @@
 import { computed, ref } from 'vue'
 import {
   ArrowRight,
-  CalendarDays,
   CheckCircle2,
   FileChartColumn,
   FileText,
@@ -10,21 +9,28 @@ import {
   X,
 } from '@lucide/vue'
 import AppShell from '../components/AppShell.vue'
+import DataProvenance from '../components/DataProvenance.vue'
+import DataState from '../components/DataState.vue'
 import DateRangeFilter from '../components/DateRangeFilter.vue'
 import StatCard from '../components/StatCard.vue'
+import { useOpsData } from '../composables/useOpsData'
 
-const selectedYear = ref('2026')
-const selectedReport = ref(null)
+const detailView = ref('summary')
+const selectedKey = ref('')
+const { data, meta, loading, error, empty, reload } = useOpsData('monthly', () => ({ view: detailView.value }))
+const summary = computed(() => data.value?.summary || {})
+const reports = computed(() => data.value?.reports || [])
+const compilation = computed(() => data.value?.latest_compilation || { progress: 0, steps: [] })
+const selectedReport = computed(() => reports.value.find((report) => `${report.report_date}-${report.report_month}` === selectedKey.value))
 
-const reports = [
-  { month: '2026年7月', date: '2026-08-01', status: '已发布', items: 486, summary: '核心系统稳定运行，完成海外 CDN 扩容和年度证书集中续期。' },
-  { month: '2026年6月', date: '2026-07-02', status: '已发布', items: 452, summary: '完成数据库主从架构优化，慢 SQL 数量较上月下降 13%。' },
-  { month: '2026年5月', date: '2026-06-01', status: '已发布', items: 431, summary: '重点推进权限治理和资源成本核查，关闭 18 项历史风险。' },
-  { month: '2026年4月', date: '2026-05-06', status: '已发布', items: 398, summary: '完成核心服务春季容量评估，新增 6 项自动化巡检。' },
-  { month: '2025年12月', date: '2026-01-05', status: '已归档', items: 520, summary: '完成年度收口及跨年保障，所有高风险变更均通过复盘。' },
-]
+const number = (value) => new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 1 }).format(value || 0)
+const monthLabel = (value = '') => value ? value.replace('-', '年') + '月' : '未标注月份'
 
-const filteredReports = computed(() => reports.filter((report) => report.month.startsWith(selectedYear.value)))
+function openReport(report) {
+  selectedKey.value = `${report.report_date}-${report.report_month}`
+  if (detailView.value === 'all') reload()
+  else detailView.value = 'all'
+}
 </script>
 
 <template>
@@ -39,77 +45,71 @@ const filteredReports = computed(() => reports.filter((report) => report.month.s
       </header>
 
       <DateRangeFilter />
+      <DataProvenance :meta="meta" />
 
-      <section class="metrics-grid monthly-metrics">
-        <StatCard label="本年月报" value="7" helper="最新发布于 08-01" trend="全部按时" trend-type="flat" :icon="FileText" />
-        <StatCard label="累计工作项" value="3,142" helper="月均 449 项" trend="8.6%" :icon="Layers3" />
-      </section>
+      <DataState :loading="loading" :error="error" :empty="empty" @retry="reload">
+        <section class="metrics-grid monthly-metrics">
+          <StatCard label="范围内月报" :value="number(summary.report_count)" :helper="reports[0] ? `最新发布于 ${reports[0].report_date}` : '暂无发布记录'" trend="按生成日期统计" trend-type="flat" :icon="FileText" />
+          <StatCard label="累计工作项" :value="number(summary.work_items)" :helper="`月均 ${number(summary.average_work_items)} 项`" trend="范围内月报汇总" trend-type="flat" :icon="Layers3" />
+        </section>
 
-      <section class="reports-layout">
+        <section class="reports-layout">
         <article class="panel report-list-panel">
           <div class="section-heading">
             <div><h2 class="section-title">月报列表</h2><p class="section-subtitle">按生成日期倒序</p></div>
-            <label class="year-select">
-              <CalendarDays :size="15" />
-              <select v-model="selectedYear" aria-label="选择年份">
-                <option value="2026">2026 年</option>
-                <option value="2025">2025 年</option>
-              </select>
-            </label>
+            <button class="secondary-button" @click="detailView = detailView === 'all' ? 'summary' : 'all'">{{ detailView === 'all' ? '收起列表' : `查看全部（${data.report_total || 0}）` }}</button>
           </div>
 
-          <div v-if="filteredReports.length" class="report-list">
-            <article v-for="report in filteredReports" :key="report.month" class="report-row">
+          <div v-if="reports.length" class="report-list">
+            <article v-for="report in reports" :key="`${report.report_date}-${report.report_month}`" class="report-row">
               <span class="report-file"><FileChartColumn :size="20" /></span>
               <div class="report-main">
-                <strong>{{ report.month }}运维月报</strong>
+                <strong>{{ monthLabel(report.report_month) }}运维月报</strong>
                 <p>{{ report.summary }}</p>
-                <small>生成日期：{{ report.date }}</small>
+                <small>生成日期：{{ report.report_date }}</small>
               </div>
               <div class="report-stats">
-                <span><small>工作项</small><b class="data-value">{{ report.items }}</b></span>
+                <span><small>工作项</small><b class="data-value">{{ number(report.work_items) }}</b></span>
               </div>
-              <span class="status-pill success">{{ report.status }}</span>
-              <button class="view-button" @click="selectedReport = report">
+              <span class="status-pill" :class="report.status.includes('发布') || report.status.includes('归档') ? 'success' : 'warning'">{{ report.status }}</span>
+              <button class="view-button" @click="openReport(report)">
                 查看 <ArrowRight :size="15" />
               </button>
             </article>
           </div>
-          <div v-else class="empty-note">该年份暂无月报</div>
+          <div v-else class="empty-note">当前时间范围暂无月报</div>
         </article>
 
         <aside class="report-side">
           <article class="panel completion-card">
             <div class="section-heading">
-              <div><h2 class="section-title">本月编制进度</h2><p class="section-subtitle">2026年8月</p></div>
-              <span class="status-pill warning">进行中</span>
+              <div><h2 class="section-title">最新编制进度</h2><p class="section-subtitle">取范围内最近一条记录</p></div>
+              <span class="status-pill warning">{{ compilation.progress >= 100 ? '已完成' : '进行中' }}</span>
             </div>
-            <div class="completion-ring"><strong class="data-value">74%</strong><small>已完成</small></div>
+            <div class="completion-ring" :style="{ background: `radial-gradient(circle, var(--surface) 57%, transparent 59%), conic-gradient(var(--primary) 0 ${compilation.progress}%, var(--border) ${compilation.progress}% 100%)` }"><strong class="data-value">{{ compilation.progress }}%</strong><small>已完成</small></div>
             <div class="check-list">
-              <span class="done"><CheckCircle2 :size="15" />项目数据汇总</span>
-              <span class="done"><CheckCircle2 :size="15" />数据库质量统计</span>
-              <span class="done"><CheckCircle2 :size="15" />安全审批统计</span>
-              <span><span class="pending-dot" />资源费用核对</span>
-              <span><span class="pending-dot" />管理摘要确认</span>
+              <span v-for="step in compilation.steps" :key="step.name" :class="{ done: step.completed }"><CheckCircle2 v-if="step.completed" :size="15" /><span v-else class="pending-dot" />{{ step.name }}</span>
+              <span v-if="!compilation.steps?.length">暂无编制步骤</span>
             </div>
           </article>
 
         </aside>
       </section>
+      </DataState>
     </div>
 
-    <div v-if="selectedReport" class="modal-backdrop" @click.self="selectedReport = null">
+    <div v-if="selectedReport" class="modal-backdrop" @click.self="selectedKey = ''">
       <article class="report-modal" role="dialog" aria-modal="true" aria-labelledby="report-title">
-        <button class="modal-close" aria-label="关闭" @click="selectedReport = null"><X :size="18" /></button>
+        <button class="modal-close" aria-label="关闭" @click="selectedKey = ''"><X :size="18" /></button>
         <span class="modal-icon"><FileChartColumn :size="24" /></span>
         <p class="page-eyebrow">Monthly Report</p>
-        <h2 id="report-title">{{ selectedReport.month }}运维月报</h2>
+        <h2 id="report-title">{{ monthLabel(selectedReport.report_month) }}运维月报</h2>
         <p class="modal-summary">{{ selectedReport.summary }}</p>
         <div class="modal-metrics">
-          <div><small>工作项</small><strong class="data-value">{{ selectedReport.items }}</strong></div>
+          <div><small>工作项</small><strong class="data-value">{{ number(selectedReport.work_items) }}</strong></div>
         </div>
         <div class="modal-actions">
-          <button class="secondary-button" @click="selectedReport = null">关闭</button>
+          <button class="secondary-button" @click="selectedKey = ''">关闭</button>
         </div>
       </article>
     </div>

@@ -1,7 +1,15 @@
 <script setup>
+import { computed } from 'vue'
 import { BadgeCheck, ShieldCheck } from '@lucide/vue'
 import AppShell from '../components/AppShell.vue'
+import DataProvenance from '../components/DataProvenance.vue'
+import DataState from '../components/DataState.vue'
 import DateRangeFilter from '../components/DateRangeFilter.vue'
+import { useOpsData } from '../composables/useOpsData'
+
+const { data, meta, loading, error, empty, reload } = useOpsData('security')
+const completed = computed(() => data.value?.completed_approvals || 0)
+const number = (value) => new Intl.NumberFormat('zh-CN').format(value || 0)
 </script>
 
 <template>
@@ -13,12 +21,14 @@ import DateRangeFilter from '../components/DateRangeFilter.vue'
           <h1 class="page-title">安全审批</h1>
           <p class="page-description">查看指定时间范围内已完成的 Lark 安全审批数量。</p>
         </div>
-        <span class="status-pill success">审批数据已同步</span>
+        <span class="status-pill success">安全审批接口已连接</span>
       </header>
 
       <DateRangeFilter />
+      <DataProvenance :meta="meta" />
 
-      <section class="panel approval-summary-panel">
+      <DataState :loading="loading" :error="error" :empty="empty" @retry="reload">
+        <section class="panel approval-summary-panel">
         <div class="section-heading">
           <div>
             <h2 class="section-title">审批汇总</h2>
@@ -31,12 +41,13 @@ import DateRangeFilter from '../components/DateRangeFilter.vue'
           <span class="approval-icon"><BadgeCheck :size="24" /></span>
           <div>
             <p>Lark 已完成审批数量</p>
-            <strong class="data-value">12</strong>
+            <strong class="data-value">{{ number(completed) }}</strong>
             <small>项</small>
           </div>
           <span class="status-pill success">全部完成</span>
         </article>
-      </section>
+        </section>
+      </DataState>
     </div>
   </AppShell>
 </template>

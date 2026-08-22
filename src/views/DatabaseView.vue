@@ -1,7 +1,15 @@
 <script setup>
+import { computed } from 'vue'
 import { AlarmClock, Database, FileClock } from '@lucide/vue'
 import AppShell from '../components/AppShell.vue'
+import DataProvenance from '../components/DataProvenance.vue'
+import DataState from '../components/DataState.vue'
 import DateRangeFilter from '../components/DateRangeFilter.vue'
+import { useOpsData } from '../composables/useOpsData'
+
+const { data, meta, loading, error, empty, reload } = useOpsData('database')
+const summary = computed(() => data.value || {})
+const number = (value) => new Intl.NumberFormat('zh-CN').format(value || 0)
 </script>
 
 <template>
@@ -13,12 +21,14 @@ import DateRangeFilter from '../components/DateRangeFilter.vue'
           <h1 class="page-title">数据库管理</h1>
           <p class="page-description">汇总 Archery 工单与慢 SQL 数量，快速查看数据库工作总量。</p>
         </div>
-        <span class="status-pill success">数据汇总正常</span>
+        <span class="status-pill success">数据库接口已连接</span>
       </header>
 
       <DateRangeFilter />
+      <DataProvenance :meta="meta" />
 
-      <section class="panel summary-panel">
+      <DataState :loading="loading" :error="error" :empty="empty" @retry="reload">
+        <section class="panel summary-panel">
         <div class="section-heading">
           <div>
             <h2 class="section-title">DBA 数据汇总</h2>
@@ -32,7 +42,7 @@ import DateRangeFilter from '../components/DateRangeFilter.vue'
             <span class="summary-icon"><FileClock :size="22" /></span>
             <div>
               <p>Archery 工单</p>
-              <strong class="data-value">24</strong>
+              <strong class="data-value">{{ number(summary.archery_tickets) }}</strong>
             </div>
           </article>
 
@@ -40,13 +50,14 @@ import DateRangeFilter from '../components/DateRangeFilter.vue'
             <span class="summary-icon warning"><AlarmClock :size="22" /></span>
             <div class="slow-summary">
               <p>慢 SQL（数量）</p>
-              <strong class="data-value">1,402</strong>
-              <span><small>生产</small><b class="data-value">842</b></span>
-              <span><small>非生产</small><b class="data-value">560</b></span>
+              <strong class="data-value">{{ number(summary.slow_sql_total) }}</strong>
+              <span><small>生产</small><b class="data-value">{{ number(summary.slow_sql_production) }}</b></span>
+              <span><small>非生产</small><b class="data-value">{{ number(summary.slow_sql_non_production) }}</b></span>
             </div>
           </article>
         </div>
-      </section>
+        </section>
+      </DataState>
     </div>
   </AppShell>
 </template>

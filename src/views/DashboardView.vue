@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 import {
   ArrowRight,
   CircleDollarSign,
@@ -10,7 +11,20 @@ import {
 } from '@lucide/vue'
 import AppShell from '../components/AppShell.vue'
 import DateRangeFilter from '../components/DateRangeFilter.vue'
+import DataProvenance from '../components/DataProvenance.vue'
+import DataState from '../components/DataState.vue'
 import StatCard from '../components/StatCard.vue'
+import { useOpsData } from '../composables/useOpsData'
+
+const { data, meta, loading, error, empty, reload } = useOpsData('dashboard')
+const projects = computed(() => data.value?.projects || {})
+const database = computed(() => data.value?.database || {})
+const security = computed(() => data.value?.security || {})
+const resources = computed(() => data.value?.resources || {})
+
+const number = (value) => new Intl.NumberFormat('zh-CN').format(value || 0)
+const money = (value) => `¥${new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 0 }).format(value || 0)}`
+const percent = (value) => `${Number(value || 0).toFixed(1)}%`
 </script>
 
 <template>
@@ -22,65 +36,54 @@ import StatCard from '../components/StatCard.vue'
           <h1 class="page-title">运维工作数据总览</h1>
           <p class="page-description">汇总项目工作、数据库工单、安全审批与支出费用。</p>
         </div>
-        <span class="status-pill success">数据已于 16:42 更新</span>
+        <span class="status-pill success">实时接口汇总</span>
       </header>
 
       <DateRangeFilter />
+      <DataProvenance :meta="meta" />
 
-      <section class="metrics-grid">
-        <StatCard label="项目工作项" value="142" helper="本周期已完成 98 项" trend="12.6%" trend-type="up" :icon="TicketCheck" />
-        <StatCard label="Archery 工单" value="24" helper="已完成" trend="6 项" trend-type="up" :icon="FileClock" />
-        <StatCard label="Lark 安全审批" value="12" helper="已完成审批数量" trend="全部完成" trend-type="flat" tone="success" :icon="ShieldCheck" />
-        <StatCard label="支出费用" value="¥45,200" helper="本周期费用总额" trend="6.8%" trend-type="down" :icon="CircleDollarSign" />
-      </section>
+      <DataState :loading="loading" :error="error" :empty="empty" @retry="reload">
+        <section class="metrics-grid">
+          <StatCard label="项目工作项" :value="number(projects.jira_total)" :helper="`本周期已完成 ${number(projects.jira_completed)} 项`" :trend="percent(projects.completion_rate)" trend-type="flat" :icon="TicketCheck" />
+          <StatCard label="Archery 工单" :value="number(database.archery_tickets)" helper="区间新增工单" :trend="`${number(database.slow_sql_total)} 条慢 SQL`" trend-type="flat" :icon="FileClock" />
+          <StatCard label="Lark 安全审批" :value="number(security.completed_approvals)" helper="已完成审批数量" trend="仅统计完成" trend-type="flat" tone="success" :icon="ShieldCheck" />
+          <StatCard label="支出费用" :value="money(resources.total_expense)" helper="本周期费用总额" trend="区间发生额" trend-type="flat" :icon="CircleDollarSign" />
+        </section>
 
-      <section class="dashboard-grid domain-grid">
-        <article class="domain-card project-card">
-          <div class="domain-heading">
-            <span><TicketCheck :size="21" /></span>
-            <div><p>项目管理</p><strong>工作项交付</strong></div>
-            <b class="data-value">142</b>
-          </div>
-          <div class="domain-detail">
-            <span>周期完成率</span><strong class="data-value">69%</strong>
-          </div>
-          <div class="progress-track"><div class="progress-bar" style="width: 69%" /></div>
-          <RouterLink to="/projects">查看项目概览 <ArrowRight :size="15" /></RouterLink>
-        </article>
+        <section class="dashboard-grid domain-grid">
+          <article class="domain-card project-card">
+            <div class="domain-heading">
+              <span><TicketCheck :size="21" /></span>
+              <div><p>项目管理</p><strong>工作项交付</strong></div>
+              <b class="data-value">{{ number(projects.jira_total) }}</b>
+            </div>
+            <div class="domain-detail"><span>周期完成率</span><strong class="data-value">{{ percent(projects.completion_rate) }}</strong></div>
+            <div class="progress-track"><div class="progress-bar" :style="{ width: `${Math.min(projects.completion_rate || 0, 100)}%` }" /></div>
+            <RouterLink to="/projects">查看项目概览 <ArrowRight :size="15" /></RouterLink>
+          </article>
 
-        <article class="domain-card db-card">
-          <div class="domain-heading">
-            <span><Database :size="21" /></span>
-            <div><p>数据库管理</p><strong>数据总量</strong></div>
-            <b class="data-value">2 类</b>
-          </div>
-          <div class="domain-totals">
-            <div><span>Archery 工单</span><strong class="data-value">24</strong></div>
-            <div><span>慢 SQL</span><strong class="data-value">1,402</strong></div>
-          </div>
-          <RouterLink to="/database">查看数据库汇总 <ArrowRight :size="15" /></RouterLink>
-        </article>
+          <article class="domain-card db-card">
+            <div class="domain-heading"><span><Database :size="21" /></span><div><p>数据库管理</p><strong>区间数据量</strong></div><b class="data-value">2 类</b></div>
+            <div class="domain-totals">
+              <div><span>Archery 工单</span><strong class="data-value">{{ number(database.archery_tickets) }}</strong></div>
+              <div><span>慢 SQL</span><strong class="data-value">{{ number(database.slow_sql_total) }}</strong></div>
+            </div>
+            <RouterLink to="/database">查看数据库汇总 <ArrowRight :size="15" /></RouterLink>
+          </article>
 
-        <article class="domain-card security-card">
-          <div class="domain-heading">
-            <span><ShieldCheck :size="21" /></span>
-            <div><p>安全审批</p><strong>Lark 已完成审批</strong></div>
-            <b class="data-value">12</b>
-          </div>
-          <div class="single-summary"><span class="status-pill success">全部完成</span></div>
-          <RouterLink to="/security">查看安全审批 <ArrowRight :size="15" /></RouterLink>
-        </article>
+          <article class="domain-card security-card">
+            <div class="domain-heading"><span><ShieldCheck :size="21" /></span><div><p>安全审批</p><strong>Lark 已完成审批</strong></div><b class="data-value">{{ number(security.completed_approvals) }}</b></div>
+            <div class="single-summary"><span class="status-pill success">仅统计已完成</span></div>
+            <RouterLink to="/security">查看安全审批 <ArrowRight :size="15" /></RouterLink>
+          </article>
 
-        <article class="domain-card resource-card">
-          <div class="domain-heading">
-            <span><PackageCheck :size="21" /></span>
-            <div><p>资源管理</p><strong>费用与资产</strong></div>
-            <b class="data-value">¥45.2K</b>
-          </div>
-          <div class="domain-detail"><span>本周期支出费用</span><strong class="data-value">¥45,200</strong></div>
-          <RouterLink to="/resources">查看资源明细 <ArrowRight :size="15" /></RouterLink>
-        </article>
-      </section>
+          <article class="domain-card resource-card">
+            <div class="domain-heading"><span><PackageCheck :size="21" /></span><div><p>资源管理</p><strong>费用与资产</strong></div><b class="data-value">{{ money(resources.total_expense) }}</b></div>
+            <div class="domain-detail"><span>本周期支出费用</span><strong class="data-value">{{ money(resources.total_expense) }}</strong></div>
+            <RouterLink to="/resources">查看资源明细 <ArrowRight :size="15" /></RouterLink>
+          </article>
+        </section>
+      </DataState>
     </div>
   </AppShell>
 </template>

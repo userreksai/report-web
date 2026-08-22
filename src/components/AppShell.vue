@@ -90,7 +90,7 @@ function logout() {
         <span class="status-light" />
         <span>
           <strong>系统运行正常</strong>
-          <small>6 个数据源已连接</small>
+          <small>5 张业务表已接入</small>
         </span>
       </div>
 
