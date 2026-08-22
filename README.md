@@ -6,21 +6,23 @@
 
 ```text
 浏览器
-  ├─ http://服务器地址:8888        report-web 前端
-  └─ http://服务器地址:10010/api   report-service 后端
+  └─ https://前端域名/api          report-web 同域入口
+               └─ http://127.0.0.1:10010/api   report-service 后端
 ```
 
-生产构建默认使用当前浏览器访问的主机名，自动请求：
+生产环境默认请求同域地址，由 `server.mjs` 转发到本机后端：
 
 ```text
-http://当前主机:10010/api/v1
+/api/v1
 ```
 
-如果前后端使用不同域名，可以在构建前设置：
+这样即使页面通过 HTTPS 访问，浏览器也不需要连接没有 TLS 证书的 10010 端口。后端不在本机时，在 `report-web.service` 中设置代理目标：
 
-```bash
-export VITE_API_BASE_URL=http://后端服务器:10010/api/v1
+```ini
+Environment=REPORT_API_ORIGIN=http://后端服务器:10010
 ```
+
+修改后执行 `sudo systemctl daemon-reload && sudo systemctl restart report-web`。如确实需要让浏览器直连另一个已配置 HTTPS 的公开 API，仍可在构建前设置 `VITE_API_BASE_URL`。
 
 ## 已实现
 
@@ -46,7 +48,7 @@ pnpm install
 pnpm run dev
 ```
 
-Vite 监听 `0.0.0.0:8888`，开发代理会把 `/api` 转发至 `127.0.0.1:10010`。
+Vite 监听 `0.0.0.0:8888`，开发和生产服务都会把 `/api` 转发至 `127.0.0.1:10010`。
 
 ## 前端服务器部署
 

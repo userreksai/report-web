@@ -9,6 +9,7 @@ Group=www-data
 WorkingDirectory=/opt/report-web
 Environment=NODE_ENV=production
 Environment=PORT=8888
+Environment=REPORT_API_ORIGIN=http://127.0.0.1:10010
 ExecStart=/usr/bin/node /opt/report-web/server.mjs
 Restart=on-failure
 RestartSec=5

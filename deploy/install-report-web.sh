@@ -21,5 +21,6 @@ sudo -u www-data npm run build
 
 sudo install -m 0644 "$APP_DIR/deploy/report-web.service" /etc/systemd/system/report-web.service
 sudo systemctl daemon-reload
-sudo systemctl enable --now report-web
+sudo systemctl enable report-web
+sudo systemctl restart report-web
 sudo systemctl status report-web --no-pager
