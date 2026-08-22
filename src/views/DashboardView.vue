@@ -29,7 +29,7 @@ import StatCard from '../components/StatCard.vue'
 
       <section class="metrics-grid">
         <StatCard label="项目工作项" value="142" helper="本周期已完成 98 项" trend="12.6%" trend-type="up" :icon="TicketCheck" />
-        <StatCard label="Archery 工单" value="24" helper="共 86 项工单" trend="6 项" trend-type="up" :icon="FileClock" />
+        <StatCard label="Archery 工单" value="24" helper="已完成" trend="6 项" trend-type="up" :icon="FileClock" />
         <StatCard label="Lark 安全审批" value="12" helper="已完成审批数量" trend="全部完成" trend-type="flat" tone="success" :icon="ShieldCheck" />
         <StatCard label="支出费用" value="¥45,200" helper="本周期费用总额" trend="6.8%" trend-type="down" :icon="CircleDollarSign" />
       </section>

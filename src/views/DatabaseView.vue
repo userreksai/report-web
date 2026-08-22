@@ -33,7 +33,6 @@ import DateRangeFilter from '../components/DateRangeFilter.vue'
             <div>
               <p>Archery 工单</p>
               <strong class="data-value">24</strong>
-              <small>共 86 项工单</small>
             </div>
           </article>
 
